@@ -6,6 +6,7 @@
     tools:context=".MainActivity">
 
     <EditText
+        android:id="@+id/edit_message"
         android:layout_weight="1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -14,11 +15,13 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/button_show"/>
+        android:text="@string/button_show"
+        android:onClick="showMessage"/>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/button_save"/>
+        android:text="@string/button_save"
+        android:onClick="saveMessage"/>
 
 </LinearLayout>

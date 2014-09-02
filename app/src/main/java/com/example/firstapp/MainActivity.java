@@ -38,7 +38,14 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
     public void showMessage (View view) {
-        Intent intent = new Intent(this, DisplayMessageActivity.class);
+        Intent intent = new Intent(this, ShowMessageActivity.class);
+        EditText editText = (EditText) findViewById(R.id.edit_message);
+        String message = editText.getText().toString();
+        intent.putExtra(EXTRA_MESSAGE, message);
+        startActivity(intent);
+    }
+    public void saveMessage (View view) {
+        Intent intent = new Intent(this, SaveMessageActivity.class);
         EditText editText = (EditText) findViewById(R.id.edit_message);
         String message = editText.getText().toString();
         intent.putExtra(EXTRA_MESSAGE, message);
