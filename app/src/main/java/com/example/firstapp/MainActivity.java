@@ -37,6 +37,7 @@ public class MainActivity extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }
+
     public void showMessage (View view) {
         Intent intent = new Intent(this, ShowMessageActivity.class);
         EditText editText = (EditText) findViewById(R.id.edit_message);
@@ -44,8 +45,17 @@ public class MainActivity extends Activity {
         intent.putExtra(EXTRA_MESSAGE, message);
         startActivity(intent);
     }
+
     public void saveMessage (View view) {
         Intent intent = new Intent(this, SaveMessageActivity.class);
+        EditText editText = (EditText) findViewById(R.id.edit_message);
+        String message = editText.getText().toString();
+        intent.putExtra(EXTRA_MESSAGE, message);
+        startActivity(intent);
+    }
+
+    public void sendMessage (View view) {
+        Intent intent = new Intent(this,SendMessageActivity.class);
         EditText editText = (EditText) findViewById(R.id.edit_message);
         String message = editText.getText().toString();
         intent.putExtra(EXTRA_MESSAGE, message);
