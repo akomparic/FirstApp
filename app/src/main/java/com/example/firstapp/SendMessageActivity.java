@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
@@ -15,9 +17,14 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HTTP;
+
 import org.json.JSONObject;
+
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.lang.String;
 
 
@@ -47,7 +54,7 @@ public class SendMessageActivity extends Activity {
             public void run() {
                 Looper.prepare(); //For Preparing Message Pool for the child Thread
                 HttpClient client = new DefaultHttpClient();
-                HttpConnectionParams.setConnectionTimeout(client.getParams(), 10000); //Timeout Limit
+                HttpConnectionParams.setConnectionTimeout(client.getParams(), 10000); //Timeout Lim
                 HttpResponse response;
                 JSONObject json = new JSONObject();
 
@@ -56,24 +63,57 @@ public class SendMessageActivity extends Activity {
                     json.put("user", user);
                     json.put("pass", password);
                     json.put("content", message);
-                    StringEntity se = new StringEntity( json.toString());
+                    StringEntity se = new StringEntity(json.toString());
                     se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
                     put.setEntity(se);
                     response = client.execute(put);
-
                     /*Checking response */
-                    if(response!=null){
-                        InputStream in = response.getEntity().getContent(); //Get the data in the entity
+                    if (response != null) {
+                        InputStream in = response.getEntity().getContent(); //Get response data
+                        String result = getStringFromInputStream(in);
                     }
-
-                } catch(Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
-                    }
+                }
 
                 Looper.loop(); //Loop in the message queue
             }
         };
         t.start();
+    }
+
+    private String getStringFromInputStream(InputStream in) {
+
+        BufferedReader br = null;
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        try {
+
+            br = new BufferedReader(new InputStreamReader(in));
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        TextView textView = new TextView(this);
+        textView.setTextSize(25);
+        textView.setText(sb.toString());
+
+        setContentView(textView);
+
+        return sb.toString();
+
     }
 
     @Override
