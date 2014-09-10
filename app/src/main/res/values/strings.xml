@@ -11,5 +11,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_save_message">SaveMessageActivity</string>
     <string name="title_activity_send_message">SendMessageActivity</string>
+    <string name="username">Neil</string>
+    <string name="password">Diamond</string>
 
 </resources>
