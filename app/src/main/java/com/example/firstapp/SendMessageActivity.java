@@ -5,26 +5,28 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
-import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.HttpStatus;
+import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.DigestScheme;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.protocol.HTTP;
 
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
 import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.lang.String;
 
 
@@ -53,67 +55,46 @@ public class SendMessageActivity extends Activity {
 
             public void run() {
                 Looper.prepare(); //For Preparing Message Pool for the child Thread
-                HttpClient client = new DefaultHttpClient();
-                HttpConnectionParams.setConnectionTimeout(client.getParams(), 10000); //Timeout Lim
-                HttpResponse response;
-                JSONObject json = new JSONObject();
 
+                DefaultHttpClient client = new DefaultHttpClient();
+                DefaultHttpClient client2 = new DefaultHttpClient();
+
+                HttpPut httpput = new HttpPut("http://192.168.232.1:8050/digest/");
+                JSONObject json = new JSONObject();
                 try {
-                    HttpPut put = new HttpPut("http://192.168.232.1:8050/auth");
-                    json.put("user", user);
-                    json.put("pass", password);
-                    json.put("content", message);
-                    StringEntity se = new StringEntity(json.toString());
-                    se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-                    put.setEntity(se);
-                    response = client.execute(put);
-                    /*Checking response */
-                    if (response != null) {
-                        InputStream in = response.getEntity().getContent(); //Get response data
-                        String result = getStringFromInputStream(in);
+                    HttpResponse response = client.execute(httpput);
+
+                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                        Header authHeader = response.getFirstHeader(AUTH.WWW_AUTH);
+
+                        DigestScheme digestScheme = new DigestScheme();
+
+                        digestScheme.processChallenge(authHeader);
+
+                        UsernamePasswordCredentials creds = new UsernamePasswordCredentials(user, password);
+                        httpput.addHeader(digestScheme.authenticate(creds, httpput));
+
+                        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                        json.put("content", message);
+                        StringEntity se = new StringEntity(json.toString());
+                        se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+                        httpput.setEntity(se);
+                        String responseBody = client2.execute(httpput, responseHandler);
                     }
+                } catch (MalformedChallengeException e) {
+                    e.printStackTrace();
+                } catch (AuthenticationException e) {
+                    e.printStackTrace();
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    client.getConnectionManager().shutdown();
+                    client2.getConnectionManager().shutdown();
                 }
-
-                Looper.loop(); //Loop in the message queue
+                Looper.loop();
             }
         };
         t.start();
-    }
-
-    private String getStringFromInputStream(InputStream in) {
-
-        BufferedReader br = null;
-        StringBuilder sb = new StringBuilder();
-
-        String line;
-        try {
-
-            br = new BufferedReader(new InputStreamReader(in));
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        TextView textView = new TextView(this);
-        textView.setTextSize(25);
-        textView.setText(sb.toString());
-
-        setContentView(textView);
-
-        return sb.toString();
-
     }
 
     @Override
