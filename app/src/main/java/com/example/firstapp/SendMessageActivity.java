@@ -15,86 +15,105 @@ import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
+
 import org.json.JSONObject;
 
 import java.io.FileOutputStream;
 import java.lang.String;
+import java.util.StringTokenizer;
 
 
 public class SendMessageActivity extends Activity {
 
+    static final int GET_LOGIN_INFO = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent intent = getIntent();
-        String filename = "SendTextStorage";
-        final String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
 
-        FileOutputStream outputStream;
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivityForResult(intent, GET_LOGIN_INFO);
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        try {
-            outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
-            outputStream.write(message.getBytes());
-            outputStream.close();
+        if(requestCode == GET_LOGIN_INFO) {
+            if (resultCode == RESULT_OK) {
+                final String credentials = data.getStringExtra("LoginInfo");
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        Thread t = new Thread() {
-            String user = getString(R.string.username);
-            String password = getString(R.string.password);
+                String filename = "SendTextStorage";
 
-            public void run() {
-                Looper.prepare(); //For Preparing Message Pool for the child Thread
+                Intent intent = getIntent();
+                final String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+                FileOutputStream outputStream;
 
-                DefaultHttpClient client = new DefaultHttpClient();
-                DefaultHttpClient client2 = new DefaultHttpClient();
-
-                HttpPut httpput = new HttpPut("http://192.168.232.1:8050/digest/");
-                JSONObject json = new JSONObject();
                 try {
-                    HttpResponse response = client.execute(httpput);
+                    outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
+                    outputStream.write(message.getBytes());
+                    outputStream.close();
 
-                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-                        Header authHeader = response.getFirstHeader(AUTH.WWW_AUTH);
-
-                        DigestScheme digestScheme = new DigestScheme();
-
-                        digestScheme.processChallenge(authHeader);
-
-                        UsernamePasswordCredentials creds = new UsernamePasswordCredentials(user, password);
-                        httpput.addHeader(digestScheme.authenticate(creds, httpput));
-
-                        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-                        json.put("content", message);
-                        StringEntity se = new StringEntity(json.toString());
-                        se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-                        httpput.setEntity(se);
-                        String responseBody = client2.execute(httpput, responseHandler);
-                    }
-                } catch (MalformedChallengeException e) {
-                    e.printStackTrace();
-                } catch (AuthenticationException e) {
-                    e.printStackTrace();
                 } catch (Exception e) {
                     e.printStackTrace();
-                } finally {
-                    client.getConnectionManager().shutdown();
-                    client2.getConnectionManager().shutdown();
                 }
-                Looper.loop();
+                Thread t = new Thread() {
+
+                    StringTokenizer tokens = new StringTokenizer(credentials, ":");
+                    String user = tokens.nextToken();
+                    String password = tokens.nextToken();
+                    //String user = getString(R.string.username);
+                    //String password = getString(R.string.password);
+
+                    public void run() {
+                        Looper.prepare(); //For Preparing Message Pool for the child Thread
+
+                        DefaultHttpClient client = new DefaultHttpClient();
+                        DefaultHttpClient client2 = new DefaultHttpClient();
+
+                        HttpPut httpput = new HttpPut("http://192.168.232.1:8050/digest/");
+                        JSONObject json = new JSONObject();
+                        try {
+                            HttpResponse response = client.execute(httpput);
+
+                            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                                Header authHeader = response.getFirstHeader(AUTH.WWW_AUTH);
+
+                                DigestScheme digestScheme = new DigestScheme();
+
+                                digestScheme.processChallenge(authHeader);
+
+                                UsernamePasswordCredentials creds = new UsernamePasswordCredentials(user, password);
+                                httpput.addHeader(digestScheme.authenticate(creds, httpput));
+
+                                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                                json.put("content", message);
+                                StringEntity se = new StringEntity(json.toString());
+                                se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+                                httpput.setEntity(se);
+                                String responseBody = client2.execute(httpput, responseHandler);
+                            }
+                        } catch (MalformedChallengeException e) {
+                            e.printStackTrace();
+                        } catch (AuthenticationException e) {
+                            e.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            client.getConnectionManager().shutdown();
+                            client2.getConnectionManager().shutdown();
+                        }
+                        Looper.loop();
+                    }
+                };
+                t.start();
             }
-        };
-        t.start();
+        }
     }
 
     @Override

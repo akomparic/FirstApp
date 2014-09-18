@@ -11,7 +11,12 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_save_message">SaveMessageActivity</string>
     <string name="title_activity_send_message">SendMessageActivity</string>
-    <string name="username">Neil</string>
-    <string name="password">Diamond</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="login_activity_info">Server authentication credentials:</string>
+    <string name="login_activity_username">Username:</string>
+    <string name="login_activity_password">Password:</string>
+    <string name="login_activity_enter_username">Enter username</string>
+    <string name="login_activity_enter_password">Enter password</string>
+    <string name="login_activity_login_button">Login</string>
 
 </resources>
