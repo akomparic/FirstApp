@@ -41,12 +41,13 @@ public class SendMessageActivity extends Activity {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivityForResult(intent, GET_LOGIN_INFO);
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if(requestCode == GET_LOGIN_INFO) {
             if (resultCode == RESULT_OK) {
-                final String credentials = data.getStringExtra("LoginInfo");
+                final String credentials = data.getStringExtra("Login_Info");
 
                 String filename = "SendTextStorage";
 
@@ -67,8 +68,6 @@ public class SendMessageActivity extends Activity {
                     StringTokenizer tokens = new StringTokenizer(credentials, ":");
                     String user = tokens.nextToken();
                     String password = tokens.nextToken();
-                    //String user = getString(R.string.username);
-                    //String password = getString(R.string.password);
 
                     public void run() {
                         Looper.prepare(); //For Preparing Message Pool for the child Thread
@@ -97,6 +96,7 @@ public class SendMessageActivity extends Activity {
                                 se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
                                 httpput.setEntity(se);
                                 String responseBody = client2.execute(httpput, responseHandler);
+
                             }
                         } catch (MalformedChallengeException e) {
                             e.printStackTrace();

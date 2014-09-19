@@ -3,6 +3,8 @@
     <words>
       <w>creds</w>
       <w>firstapp</w>
+      <w>temppassword</w>
+      <w>tempusername</w>
     </words>
   </dictionary>
 </component>

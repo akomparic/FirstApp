@@ -17,24 +17,19 @@ import android.widget.EditText;
 
 public class LoginActivity extends Activity {
 
+    //public final static String LOGIN_INFO = "com.example.firstapp.LOGIN";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+    }
 
-        EditText tempusername = (EditText)findViewById(R.id.editText1);
-        EditText temppassword = (EditText)findViewById(R.id.editText2);
-        Button login = (Button)findViewById(R.id.button);
-
-        String user = tempusername.getText().toString();
-        String pass = temppassword.getText().toString();
-
-        String LoginInfo = (user + ":" + pass);
-
-        Intent resultData = new Intent(this, SendMessageActivity.class);
-        resultData.putExtra("LoginInfo", LoginInfo);
-        setResult(Activity.RESULT_OK, resultData);
-        finish();
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
     }
 
     @Override
@@ -47,5 +42,22 @@ public class LoginActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void loginData(View view) {
+
+        Intent resultData = new Intent(this, SendMessageActivity.class);
+
+        EditText tempusername = (EditText)findViewById(R.id.editText1);
+        EditText temppassword = (EditText)findViewById(R.id.editText2);
+
+        String user = tempusername.getText().toString();
+        String pass = temppassword.getText().toString();
+
+        String Login = (user + ":" + pass);
+
+        resultData.putExtra("Login_Info", Login);
+        setResult(Activity.RESULT_OK, resultData);
+        finish();
     }
 }
